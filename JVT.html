@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JVT: The Smart Investment Hub - Print Version</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fc;
+        }
+
+        .container {
+            max-width: 1000px;
+        }
+
+        .gradient-header {
+            background-image: linear-gradient(135deg, #0b1a2e 0%, #1e3a5f 100%);
+        }
+
+        .kpi-card {
+            background-color: #ffffff;
+            border-left: 5px solid #00c6a7;
+            /* Object 1 Green/Blue accent */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .chart-container {
+            /* FIXED HEIGHT for layout stability (CLS fix) */
+            min-height: 420px;
+            height: 420px;
+            /* Guarantee vertical space */
+
+            background-color: #ffffff;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .chart-canvas {
+            width: 100%;
+            height: 100%;
+            /* Make canvas fill the fixed container */
+        }
+
+        /* Custom style for image placeholders/real images */
+        .content-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .data-visual-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Use contain to ensure the whole image is visible */
+        }
+
+        .section-title {
+            position: relative;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            height: 3px;
+            width: 50%;
+            background-color: #00c6a7;
+            border-radius: 2px;
+        }
+
+        /* --- PRINT MEDIA QUERY FOR PDF EXPORT FIX --- */
+        @media print {
+            /* 1. Global Reset for Print */
+            body {
+                background-color: #fff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .container {
+                max-width: none !important;
+                width: 100% !important;
+                box-shadow: none !important;
+                border: none !important;
+                overflow: visible !important;
+            }
+            main {
+                background-color: #fff !important;
+                padding: 1rem !important; /* Reduced padding for better page usage */
+            }
+            
+            /* 2. Header and Footer Simplification */
+            .gradient-header {
+                background: #0b1a2e !important; /* Solid color for print */
+                color: #fff !important;
+                print-color-adjust: exact; /* Ensure color prints if allowed */
+                -webkit-print-color-adjust: exact;
+            }
+            footer {
+                background: #333 !important;
+                color: #fff !important;
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+
+            /* 3. Force Stacking and Remove Grid Issues */
+            .grid, .flex {
+                display: block !important; /* Force to block display for stacking */
+            }
+            .grid-cols-1, .md\:grid-cols-2, .md\:grid-cols-3, .lg\:grid-cols-4 {
+                display: block !important; /* Ensure all grids stack */
+            }
+            .gap-6, .gap-8 {
+                margin-bottom: 1rem !important; /* Add space between stacked items */
+                gap: 0 !important;
+            }
+
+            /* 4. KPI and Card Simplification */
+            .kpi-card, .bg-white, .bg-indigo-50\/50, .chart-container {
+                background-color: #fff !important;
+                box-shadow: none !important;
+                border: 1px solid #ccc !important;
+                padding: 0.8rem !important;
+                margin-bottom: 1rem !important;
+                page-break-inside: avoid; /* Prevent cards from splitting across pages */
+            }
+            .kpi-card {
+                border-left: 5px solid #00c6a7 !important;
+            }
+
+            /* 5. Chart/Image Fixes (Crucial for Sales/Rental Price visuals) */
+            /* Ensure all parent elements are full width to avoid clipping the wide chart images */
+            .md\:w-1\/2, .md\:col-start-2 {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            
+            /* Remove fixed heights on charts to let them scale, but keep the min-height for structure */
+            .chart-container {
+                height: auto !important; 
+                min-height: 350px !important; /* A bit smaller for print */
+            }
+
+            /* Ensure the enlarged images (Sales/Rental) take up the full print width */
+            .h-\[400px\], .max-h-\[400px\] {
+                height: auto !important;
+                max-height: none !important; 
+            }
+
+            /* Style Chart titles to be black */
+            h3, h4 {
+                color: #000 !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="p-4 sm:p-8">
+    <div class="container mx-auto rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+        <!-- Header Section (Sales Pitch Title) -->
+        <header class="gradient-header text-white p-10 rounded-t-3xl text-center relative">
+            <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-3">JVT: The Smart Investment Hub</h1>
+            <p class="text-xl font-light opacity-90 max-w-3xl mx-auto">
+                A Data-Driven Mandate for Brokers on Why Jumeirah Village Triangle is the Market's Highest-Yield Corridor.
+            </p>
+            <div class="mt-5 text-base sm:text-lg font-semibold border-t border-white/20 pt-3">
+                Presented by Basem Al Salahi - Sales Manager, Object 1 Developer
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="bg-gray-50 p-6 sm:p-12 space-y-12">
+            <!-- Key Performance Indicators Section (Using High-Impact Estimates) -->
+            <section class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                <div class="kpi-card rounded-xl p-6 shadow-lg border-emerald-500">
+                    <h2 class="text-5xl font-extrabold text-[#00c6a7] mb-2">~7%</h2>
+                    <p class="text-lg font-semibold text-gray-700">Average Rental ROI</p>
+                </div>
+                <div class="kpi-card rounded-xl p-6 shadow-lg border-emerald-500">
+                    <h2 class="text-5xl font-extrabold text-[#00c6a7] mb-2">24M sqft</h2>
+                    <p class="text-lg font-semibold text-gray-700">Size</p>
+                </div>
+                <div class="kpi-card rounded-xl p-6 shadow-lg border-emerald-500">
+                    <h2 class="text-5xl font-extrabold text-[#00c6a7] mb-2">>25%</h2>
+                    <p class="text-lg font-semibold text-gray-700">Capital Appreciation (2023-2025)</p>
+                </div>
+            </section>
+
+            <hr class="border-gray-200">
+
+            <!-- Community Overview & Connectivity -->
+            <section>
+                <h2 class="text-3xl font-extrabold text-gray-800 section-title">Strategic Location & Lifestyle Hub</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+                    <!-- Community Overview -->
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h3 class="text-xl font-bold text-gray-700 mb-3">Community Developer and Vision</h3>
+                        <!-- Image: Community Overview -->
+                        <img src="https://d34mfkth6cubud.cloudfront.net/wp-content/uploads/2024/05/07075909/JVT-Area-Overview.jpg" alt="Aerial view of Jumeirah Village Triangle (JVT)" class="content-image mb-4">
+
+                        <p class="leading-relaxed text-gray-600 mb-3">
+                            Jumeirah Village Triangle "JVT" is a premium, self-contained master community developed by Nakheel. It is strategically designed for modern, high-demand urban living, balancing residential and commercial properties to ensure sustained vibrancy and tenant attraction.
+                        </p>
+                    </div>
+
+                    <!-- Connectivity & Attractions -->
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h3 class="text-xl font-bold text-gray-700 mb-3">Connectivity & Major Roads</h3>
+                        <!-- Image: Major Roads and Connectivity -->
+                        <img src="https://manage.tanamiproperties.com/Project/LayoutPlan/1394/Gallery/1425.webp" alt="Map showing JVT's connectivity to major Dubai roads" class="content-image mb-4">
+                        <p class="leading-relaxed text-gray-600 mb-3">
+                            JVT's location ensures unparalleled access to Dubai's primary economic and leisure zones, significantly boosting both rental demand and property value.
+                        </p>
+                        <p class="font-semibold text-gray-700">Seamless Access Via:</p>
+                        <ul class="list-disc list-inside text-sm text-gray-600 ml-4 mb-4">
+                            <li>Al Khail Road (E44)</li>
+                            <li>Sheikh Mohammed Bin Zayed Road (E311)</li>
+                        </ul>
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- Attractions Inside Community -->
+            <section class="bg-white p-8 rounded-xl shadow-lg">
+                <h3 class="text-2xl font-extrabold text-gray-800 section-title mb-4">A Self-Sufficient Lifestyle Hub</h3>
+                <p class="text-gray-600 mb-6">
+                    The integrated amenities within JVT ensure high tenant retention and low vacancy rates, making your investment ultra-secure.
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-center">
+                    <div class="p-4 rounded-lg bg-indigo-50/50 shadow-inner">
+                        <span class="text-3xl text-indigo-700 block mb-2">🏫</span>
+                        <p class="font-bold text-gray-700">Education</p>
+                        <p class="text-sm text-gray-500">The Arcadia School, Sunmarke School, Nord Anglia International School</p>
+                    </div>
+                    <div class="p-4 rounded-lg bg-indigo-50/50 shadow-inner">
+                        <span class="text-3xl text-indigo-700 block mb-2">🏥</span>
+                        <p class="font-bold text-gray-700">Healthcare</p>
+                        <p class="text-sm text-gray-500">Mediclinic Meadows, NMC Royal Hospital</p>
+                    </div>
+                    <div class="p-4 rounded-lg bg-indigo-50/50 shadow-inner">
+                        <span class="text-3xl text-indigo-700 block mb-2">🛍️</span>
+                        <p class="font-bold text-gray-700">Retail & Shops</p>
+                        <p class="text-sm text-gray-500">The Village Centre, Local Shops, Community Restaurants</p>
+                    </div>
+                    <div class="p-4 rounded-lg bg-indigo-50/50 shadow-inner">
+                        <span class="text-3xl text-indigo-700 block mb-2">🌳</span>
+                        <p class="font-bold text-gray-700">Leisure</p>
+                        <p class="text-sm text-gray-500">Community Parks, Recreational Areas</p>
+                    </div>
+                </div>
+                <!-- Image: Attractions inside the community -->
+                <img src="https://static.propsearch.ae/dubai-locations/jvt-district-9-park_HGE6p_xl.jpg" alt="Picture of a community park or school in JVT" class="content-image mt-6 h-48">
+            </section>
+
+            <hr class="border-gray-200">
+
+            <!-- Market Data & Projections Section -->
+            <section>
+                <h2 class="text-3xl font-extrabold text-gray-800 section-title">Data-Driven Market</h2>
+
+                <!-- NEW: JVT Total Units Image -->
+                <div class="grid grid-cols-1 mt-6">
+                    <div class="chart-container !h-auto !min-h-[200px]">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">JVT Total Units</h3>
+                        <img src="https://svuonlineorg-my.sharepoint.com/personal/basem_101748_svuonline_org/Documents/Work/Object%201/JVT%20Study/1-JVT%20Total%20units%20.png"
+                             alt="Graph showing total units in JVT"
+                             class="data-visual-image h-full w-full">
+                        <div class="mt-4 text-center text-sm text-gray-500">
+                            Total Units in JVT (Ready and Under Construction) underscore the sheer scale of the community's development.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 1: Units Status & Ready Units Breakdown (Charts retained) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                    <div class="chart-container">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">Ready vs. Under Construction Units</h3>
+                        <canvas id="unitsStatusChart" class="chart-canvas"></canvas>
+                        <div class="mt-4 text-center text-sm text-gray-500">
+                            High Future Supply: With 10,015 UC units, JVT's growth phase is massive, ensuring future capital growth.
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">Ready Unit Type Breakdown (6,337 Units)</h3>
+                        <canvas id="readyUnitsBreakdownChart" class="chart-canvas"></canvas>
+
+                    </div>
+                </div>
+
+                <!-- Row 2: Residential/Commercial and Supply Tracker (Images retained) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                    <!-- Residential vs Commercial -->
+                    <div class="chart-container">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">Residential vs. Commercial Market Share (Total)</h3>
+                        <img src="https://svuonlineorg-my.sharepoint.com/personal/basem_101748_svuonline_org/Documents/Work/Object%201/JVT%20Study/2-%20JVT%20-%20Res%20&%20Comm.jpg"
+                            alt="Chart showing Residential vs Commercial unit split in JVT"
+                            class="data-visual-image h-full w-full">
+                    </div>
+                    <!-- Units Supply Tracker -->
+                    <div class="chart-container">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">Units Supply Tracker</h3>
+                        <img src="https://svuonlineorg-my.sharepoint.com/personal/basem_101748_svuonline_org/Documents/Work/Object%201/JVT%20Study/JVT-units-supply-tracker%20(1).jpeg"
+                            alt="Chart showing projected supply of units in JVT"
+                            class="data-visual-image h-full w-full">
+                    </div>
+                </div>
+
+                <!-- Row 3: Performance (Charts retained) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
+                    <div class="chart-container">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">Capital Appreciation (Past & Projected)</h3>
+                        <canvas id="appreciationChart" class="chart-canvas"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">JVT Rental ROI vs. Global Cities</h3>
+                        <canvas id="roiChart" class="chart-canvas"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">Projected Population Growth (Dubai)</h3>
+                        <canvas id="populationChart" class="chart-canvas"></canvas>
+                    </div>
+                </div>
+
+                <!-- START OF RE-STRUCTURED DATA VISUALS SECTION -->
+                <div class="mt-8 text-center">
+                    <h3 class="text-xl font-bold text-gray-800 mb-6">Additional Data Visuals (Key Market Comparisons):</h3>
+                    
+                    <!-- Row 1: Oqood vs. Title Deed (Single, Centered) -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div class="bg-white p-4 rounded-xl shadow-lg border-b-4 border-gray-200 md:col-start-2">
+                            <h4 class="text-xl font-semibold text-gray-800 mb-3">Oqood vs. Title Deed Dynamics</h4>
+                            <img src="https://svuonlineorg-my.sharepoint.com/personal/basem_101748_svuonline_org/Documents/Work/Object%201/JVT%20Study/3-%20JVT-TvsO-2025.jpeg" 
+                                 alt="Image showing Oqood vs Title Deed differences" 
+                                 class="rounded-lg shadow-md w-full h-auto data-visual-image max-h-80">
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Sales Prices (Wider Layout: 2 Columns) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        
+                        <!-- 2. Sales Price 2024 (50% Width) -->
+                        <div class="bg-white p-4 rounded-xl shadow-lg border-b-4 border-red-500">
+                            <h4 class="text-2xl font-extrabold text-red-600 mb-3">Sales Price 2024</h4>
+                            <img src="https://svuonlineorg-my.sharepoint.com/personal/basem_101748_svuonline_org/Documents/Work/Object%201/JVT%20Study/4-JVT%20Sales%20Price%202024.png.png" 
+                                 alt="Graph of JVT Sales Volume in 2024" 
+                                 class="rounded-lg shadow-md w-full data-visual-image h-[400px] max-h-[400px]">
+                        </div>
+                        
+                        <!-- 3. Sales Price 2025 (50% Width) -->
+                        <div class="bg-white p-4 rounded-xl shadow-lg border-b-4 border-red-500">
+                            <h4 class="text-2xl font-extrabold text-red-600 mb-3">Sales Price 2025 (Projected)</h4>
+                            <img src="https://svuonlineorg-my.sharepoint.com/personal/basem_101748_svuonline_org/Documents/Work/Object%201/JVT%20Study/5-JVT%20Sales%20Price%202025.png" 
+                                 alt="Graph of JVT Projected Sales Volume in 2025" 
+                                 class="rounded-lg shadow-md w-full data-visual-image h-[400px] max-h-[400px]">
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Rental Prices (Wider Layout: 2 Columns) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+
+                        <!-- 4. Rental Price 2024 (50% Width) -->
+                        <div class="bg-white p-4 rounded-xl shadow-lg border-b-4 border-green-500">
+                            <h4 class="text-2xl font-extrabold text-green-600 mb-3">Rental Price 2024</h4>
+                            <img src="https://svuonlineorg-my.sharepoint.com/personal/basem_101748_svuonline_org/Documents/Work/Object%201/JVT%20Study/6-JVT%20Rental%20Price%202024.png" 
+                                 alt="Graph of JVT Rental Yield/Price in 2024" 
+                                 class="rounded-lg shadow-md w-full data-visual-image h-[400px] max-h-[400px]">
+                        </div>
+                        
+                        <!-- 5. Rental Price 2025 (50% Width) -->
+                        <div class="bg-white p-4 rounded-xl shadow-lg border-b-4 border-green-500">
+                            <h4 class="text-2xl font-extrabold text-green-600 mb-3">Rental Price 2025 (Projected)</h4>
+                            <img src="https://svuonlineorg-my.sharepoint.com/personal/basem_101748_svuonline_org/Documents/Work/Object%201/JVT%20Study/7-JVT%20Rental%20Price%202025.png" 
+                                 alt="Graph of JVT Projected Rental Yield/Price in 2025" 
+                                 class="rounded-lg shadow-md w-full data-visual-image h-[400px] max-h-[400px]">
+                        </div>
+                    </div>
+                    
+                    <!-- Row 4: Market Share (Standard Layout: 2 Columns) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+
+                        <!-- 6. Market Share 2024 -->
+                        <div class="bg-white p-4 rounded-xl shadow-lg border-b-4 border-gray-200">
+                            <h4 class="text-xl font-semibold text-gray-800 mb-3">Market Share 2024</h4>
+                            <img src="https://svuonlineorg-my.sharepoint.com/personal/basem_101748_svuonline_org/Documents/Work/Object%201/JVT%20Study/9-JVT_Market%20share%202024.jpg" 
+                                 alt="Chart comparing JVT Market Share in 2024" 
+                                 class="rounded-lg shadow-md w-full h-auto data-visual-image max-h-80">
+                        </div>
+                        
+                        <!-- 7. Market Share 2025 -->
+                        <div class="bg-white p-4 rounded-xl shadow-lg border-b-4 border-gray-200">
+                            <h4 class="text-xl font-semibold text-gray-800 mb-3">Market Share 2025 (Projected)</h4>
+                            <img src="https://svuonlineorg-my.sharepoint.com/personal/basem_101748_svuonline_org/Documents/Work/Object%201/JVT%20Study/10-JVT_Market%20share%202025.jpg" 
+                                 alt="Chart comparing JVT Projected Market Share in 2025" 
+                                 class="rounded-lg shadow-md w-full h-auto data-visual-image max-h-80">
+                        </div>
+                    </div>
+                </div>
+                <!-- END OF RE-STRUCTURED DATA VISUALS SECTION -->
+
+
+            </section>
+
+
+            <hr class="border-gray-200">
+
+            <!-- Project Spotlight Section -->
+            <section>
+                <h2 class="text-3xl font-extrabold text-gray-800 section-title">Project Spotlight: The Object 1 Advantage</h2>
+                <div class="flex flex-col md:flex-row items-center gap-8 mt-6 bg-white p-8 rounded-xl shadow-lg border-t-4 border-indigo-500">
+                    <div class="md:w-1/2">
+                        <!-- Image: Object 1 Modern Luxury Building -->
+                        <img src="https://keltandcorealty.com/wp-content/uploads/2025/08/Elaris-Axis-Tower-at-Jumeriah-Village-Triangle-JLT-Dubai-%E2%80%93-Object-1-Fp-4-1-1024x576.webp" alt="Render of Object 1's modern, luxury building in JVT" class="content-image h-96">
+                    </div>
+                    <div class="md:w-1/2 text-gray-700">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">Invest with the Builder of Choice</h3>
+                        <p class="leading-relaxed mb-4">
+                            At Object 1, we focus only on high-growth corridors and deliver premium projects designed to maximize investor returns. Our projects offer your clients an unmatched value proposition in JVT.
+                        </p>
+                        <ul class="list-disc list-inside space-y-3 text-lg font-medium text-gray-700">
+                            <li>✅ Prime Location: Meticulously selected plots in JVT's growth zone.</li>
+                            <li>✅ High-Yield Focus: Designed for optimal rental returns and capital growth.</li>
+                            <li>✅ Superior Quality: Unmatched construction standards and finishes.</li>
+                            <li>✅ Flexible Payment Plans: Investor-centric structures to improve cash flow.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer with Contact Info -->
+        <footer class="bg-gray-800 text-white p-6 rounded-b-3xl text-center">
+            <h3 class="text-xl font-bold mb-2">Let's Capitalize on the JVT Opportunity Together</h3>
+            <p class="text-sm opacity-80">Contact me to schedule a detailed briefing for your team:</p>
+            <div class="mt-4 text-2xl font-extrabold text-[#00c6a7]">
+                Basem Al Salahi
+            </div>
+            <div class="text-lg font-light mt-1">
+                <p>+971 56 872 2192</p>
+                <p>Instagram: @basemrealestatedxb</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Chart.js Configuration -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // --- JVT SPECIFIC DATA FROM JVT Study.txt ---
+            const READY_UNITS = 6337;
+            const UC_UNITS = 10015;
+            const READY_APT = 3460;
+            const READY_VILLA = 2188;
+            const READY_TOWNHOUSE = 27;
+            const READY_OFFICES = 6;
+            const READY_RETAIL = 22;
+
+            // Building Status 
+            const unitsStatusData = {
+                labels: [`Ready Units (${READY_UNITS})`, `Under Construction (${UC_UNITS})`],
+                datasets: [{
+                    label: 'Unit Status',
+                    data: [READY_UNITS, UC_UNITS],
+                    backgroundColor: ['#00c6a7', '#1e3a5f'],
+                    borderColor: '#ffffff',
+                    borderWidth: 2,
+                    hoverOffset: 12
+                }]
+            };
+
+            // Ready Units Breakdown 
+            const readyUnitsBreakdownData = {
+                labels: [`Apartment (${READY_APT})`, `Villa (${READY_VILLA})`, `Townhouse (${READY_TOWNHOUSE})`, `Retail (${READY_RETAIL})`, `Offices (${READY_OFFICES})`],
+                datasets: [{
+                    label: 'Ready Unit Mix',
+                    data: [READY_APT, READY_VILLA, READY_TOWNHOUSE, READY_RETAIL, READY_OFFICES],
+                    backgroundColor: ['#00c6a7', '#1e3a5f', '#fcd34d', '#ef4444', '#3b82f6'],
+                    borderColor: '#ffffff',
+                    borderWidth: 2,
+                    hoverOffset: 12
+                }]
+            };
+
+            // Capital Appreciation (Illustrative Sales Pitch Data)
+            const appreciationData = {
+                labels: ['Q1 2023', 'Q4 2023', 'Q1 2024', 'Q4 2024', 'Q2 2025 (Proj.)'],
+                datasets: [{
+                    label: 'Growth Index (Base 100)',
+                    data: [100, 108, 115, 122, 128], // Reflects >25% growth
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 6,
+                }]
+            };
+
+            // Rental ROI (Illustrative Sales Pitch Data)
+            const roiData = {
+                labels: ['JVT', 'London', 'New York', 'Hong Kong'],
+                datasets: [{
+                    label: 'Average Rental ROI (%)',
+                    data: [7.5, 3.5, 2.5, 2.0], // Reflects ~7.5% ROI
+                    backgroundColor: ['#00c6a7', '#cbd5e1', '#cbd5e1', '#cbd5e1'],
+                    borderRadius: 8,
+                }]
+            };
+
+            // Population Growth (Illustrative Macro Dubai Data)
+            const populationData = {
+                labels: ['2025', '2026', '2027', '2028', '2029', '2030'],
+                datasets: [{
+                    label: 'Projected Population (in millions)',
+                    data: [3.9, 4.2, 4.6, 4.9, 5.3, 5.8],
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                }]
+            };
+
+            // Common Chart Options
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false, // Ensures CLS fix is effective
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#4b5563'
+                        }
+                    },
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: '#1e3a5f',
+                        titleFont: { weight: 'bold' }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#e5e7eb' },
+                        ticks: { color: '#6b7280' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#6b7280' }
+                    }
+                }
+            };
+            
+            // Override options for printing the canvas charts (make text black)
+            const printOptions = JSON.parse(JSON.stringify(commonOptions));
+            printOptions.scales.y.ticks.color = '#000';
+            printOptions.scales.x.ticks.color = '#000';
+            if (printOptions.plugins.legend) {
+                printOptions.plugins.legend.labels.color = '#000';
+            }
+
+
+            // Initialize Charts (Only those remaining as canvas elements)
+            new Chart(document.getElementById('unitsStatusChart'), {
+                type: 'doughnut',
+                data: unitsStatusData,
+                options: {
+                    ...printOptions, // Use print options for better contrast
+                    scales: { y: { display: false }, x: { display: false } }
+                }
+            });
+
+            new Chart(document.getElementById('readyUnitsBreakdownChart'), {
+                type: 'doughnut',
+                data: readyUnitsBreakdownData,
+                options: {
+                    ...printOptions, // Use print options for better contrast
+                    scales: { y: { display: false }, x: { display: false } }
+                }
+            });
+
+            new Chart(document.getElementById('appreciationChart'), {
+                type: 'line',
+                data: appreciationData,
+                options: printOptions // Use print options for better contrast
+            });
+
+            new Chart(document.getElementById('roiChart'), {
+                type: 'bar',
+                data: roiData,
+                options: printOptions // Use print options for better contrast
+            });
+
+            new Chart(document.getElementById('populationChart'), {
+                type: 'line',
+                data: populationData,
+                options: printOptions // Use print options for better contrast
+            });
+        });
+    </script>
+</body>
+</html>
